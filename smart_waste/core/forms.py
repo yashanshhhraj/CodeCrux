@@ -41,64 +41,69 @@ class CustomLoginForm(forms.Form):
 
         return cleaned_data
 
+from django import forms
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User
+
 class UserRegistrationForm(UserCreationForm):
-    USER_TYPE_CHOICES = (
+    USER_TYPE_CHOICES = [
         ('', 'Select User Type'),
         ('public', 'Public User'),
         ('municipal', 'Municipal Corporation'),
         ('vendor', 'Vendor'),
-    )
-    
+    ]
+
     email = forms.EmailField(
         required=True,
-        widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Email'})
+        widget=forms.EmailInput()
     )
-    first_name = forms.CharField(
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'First Name'})
-    )
-    last_name = forms.CharField(
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Last Name'})
-    )
-    user_type = forms.ChoiceField(
-        choices=USER_TYPE_CHOICES,
-        widget=forms.Select(attrs={'class': 'form-control'})
-    )
-    phone_number = forms.CharField(
-        required=False,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Phone Number'})
-    )
-    
+    first_name = forms.CharField(widget=forms.TextInput())
+    last_name = forms.CharField(widget=forms.TextInput())
+    user_type = forms.ChoiceField(choices=USER_TYPE_CHOICES, widget=forms.Select())
+    phone_number = forms.CharField(required=False, widget=forms.TextInput())
+
     class Meta:
         model = User
         fields = ['username', 'email', 'first_name', 'last_name', 'password1', 'password2', 'user_type', 'phone_number']
-    
+
     def __init__(self, *args, **kwargs):
         super(UserRegistrationForm, self).__init__(*args, **kwargs)
-        # Update widget attributes for built-in fields
-        self.fields['username'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Username'})
-        self.fields['password1'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Password'})
-        self.fields['password2'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Confirm Password'})
-    
+        
+        # Common Tailwind CSS styles for input fields
+        field_classes = "w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        
+        for field_name, field in self.fields.items():
+            if isinstance(field.widget, forms.Select):
+                # Apply Tailwind styles to dropdowns
+                field.widget.attrs.update({'class': field_classes + " bg-white"})
+            elif isinstance(field.widget, forms.PasswordInput):
+                # Apply Tailwind styles to password fields
+                field.widget.attrs.update({'class': field_classes, 'placeholder': f'Enter your {field_name.replace("_", " ")}'})
+            else:
+                # Apply Tailwind styles to text fields
+                field.widget.attrs.update({'class': field_classes, 'placeholder': f'Enter your {field_name.replace("_", " ")}'})
+
     def clean_user_type(self):
         user_type = self.cleaned_data.get('user_type')
         if not user_type:
             raise forms.ValidationError("Please select a user type")
         return user_type
-    
+
     def save(self, commit=True):
         user = super(UserRegistrationForm, self).save(commit=False)
         user.email = self.cleaned_data['email']
         user.first_name = self.cleaned_data['first_name']
         user.last_name = self.cleaned_data['last_name']
-        
+
         if commit:
             user.save()
-            # Profile is created via signals, now we update it
+            # Update user profile after saving
             user.profile.user_type = self.cleaned_data['user_type']
             user.profile.phone_number = self.cleaned_data['phone_number']
             user.profile.save()
-            
+
         return user
+
 
 class ForgotPasswordForm(forms.Form):
     email = forms.EmailField(

@@ -130,7 +130,7 @@ class LogoutView(View):
         return redirect('login')
 
 class ForgotPasswordView(View):
-    template_name = 'forgot_password.html'
+    template_name = 'core/forgot_password.html'
     
     def get(self, request):
         return render(request, self.template_name)
@@ -143,7 +143,7 @@ class ForgotPasswordView(View):
         return redirect('login')
 
 class RegisterView(View):
-    template_name = 'register.html'
+    template_name = 'core/register.html'
     
     def get(self, request):
         form = UserRegistrationForm()

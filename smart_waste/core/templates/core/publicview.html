@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block title %}Public Dashboard - CleanCity{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-10">
+    <div class="text-center mb-8">
+        <h1 class="text-4xl font-bold text-gray-800">Welcome to CleanCity</h1>
+        <p class="text-lg text-gray-600">Help keep our community clean and earn rewards</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        <!-- Report Garbage Card -->
+        <div class="bg-white shadow-lg rounded-lg p-6 text-center hover:shadow-xl transition">
+            <div class="flex items-center justify-center w-16 h-16 bg-blue-500 text-white rounded-full mx-auto mb-4">
+                <i class="bi bi-trash-fill text-3xl"></i>
+            </div>
+            <h3 class="text-xl font-semibold">Report Garbage</h3>
+            <p class="text-gray-600">Spotted garbage in your neighborhood? Report it easily and help keep your community clean.</p>
+            <a href="{% url 'report_garbage' %}" class="mt-4 inline-block px-4 py-2 bg-blue-500 text-white rounded-lg">Report Now</a>
+        </div>
+
+        <!-- Track Collection Vehicle Card -->
+        <div class="bg-white shadow-lg rounded-lg p-6 text-center hover:shadow-xl transition">
+            <div class="flex items-center justify-center w-16 h-16 bg-green-500 text-white rounded-full mx-auto mb-4">
+                <i class="bi bi-truck text-3xl"></i>
+            </div>
+            <h3 class="text-xl font-semibold">Track Collection</h3>
+            <p class="text-gray-600">See real-time location of garbage collection vehicles in your area.</p>
+            <a href="{% url 'track_vehicle' %}" class="mt-4 inline-block px-4 py-2 bg-green-500 text-white rounded-lg">Track Now</a>
+        </div>
+
+        <!-- Rewards Points Card -->
+        <div class="bg-white shadow-lg rounded-lg p-6 text-center hover:shadow-xl transition">
+            <div class="flex items-center justify-center w-16 h-16 bg-yellow-500 text-white rounded-full mx-auto mb-4">
+                <i class="bi bi-award text-3xl"></i>
+            </div>
+            <h3 class="text-xl font-semibold">Reward Points</h3>
+            <p class="text-gray-600">Earn points for contributions to keeping the city clean and redeem for rewards.</p>
+            <a href="{% url 'rewards_dashboard' %}" class="mt-4 inline-block px-4 py-2 bg-yellow-500 text-white rounded-lg">View Rewards</a>
+        </div>
+    </div>
+
+    {% if user.is_authenticated %}
+    <div class="bg-white shadow-lg rounded-lg p-6 mb-10">
+        <h3 class="text-2xl font-semibold mb-4">Your CleanCity Stats</h3>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
+            <div class="p-4 bg-gray-100 rounded-lg">
+                <h4 class="text-xl font-bold">{{ user.profile.total_reports }}</h4>
+                <p class="text-gray-600">Reports Made</p>
+            </div>
+            <div class="p-4 bg-gray-100 rounded-lg">
+                <h4 class="text-xl font-bold">{{ user.profile.points }}</h4>
+                <p class="text-gray-600">Points Earned</p>
+            </div>
+            <div class="p-4 bg-gray-100 rounded-lg">
+                <h4 class="text-xl font-bold">{{ user.profile.level }}</h4>
+                <p class="text-gray-600">Current Level</p>
+            </div>
+            <div class="p-4 bg-gray-100 rounded-lg">
+                <h4 class="text-xl font-bold">{{ user.profile.rewards_redeemed }}</h4>
+                <p class="text-gray-600">Rewards Redeemed</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Map Section -->
+    <div class="bg-white shadow-lg rounded-lg p-6 mb-10">
+        <h3 class="text-2xl font-semibold mb-4">Garbage Collection Map</h3>
+        <div id="collection-map" class="h-96 bg-gray-200"></div>
+    </div>
+
+    <!-- Waste Management Tips -->
+    <div class="bg-white shadow-lg rounded-lg p-6">
+        <h3 class="text-2xl font-semibold mb-4">Waste Management Tips</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="p-4 border-l-4 border-blue-500">
+                <h5 class="text-lg font-semibold">Separate Your Waste</h5>
+                <p class="text-gray-600">Always separate recyclables from general waste.</p>
+            </div>
+            <div class="p-4 border-l-4 border-green-500">
+                <h5 class="text-lg font-semibold">Reduce Single-Use Plastics</h5>
+                <p class="text-gray-600">Carry reusable bags to minimize plastic waste.</p>
+            </div>
+            <div class="p-4 border-l-4 border-yellow-500">
+                <h5 class="text-lg font-semibold">Compost Food Waste</h5>
+                <p class="text-gray-600">Turn food waste into compost for gardening.</p>
+            </div>
+            <div class="p-4 border-l-4 border-red-500">
+                <h5 class="text-lg font-semibold">Proper E-Waste Disposal</h5>
+                <p class="text-gray-600">Dispose of e-waste at designated centers.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log("Map initialization would happen here");
+    });
+</script>
+{% endblock %}
+{% endblock content %}

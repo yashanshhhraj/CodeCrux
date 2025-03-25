@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - CleanCity</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+</head>
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+
+    <div class="w-full max-w-md bg-white shadow-lg rounded-lg p-6">
+        <h2 class="text-2xl font-bold text-center text-gray-800 mb-4">Log In to CleanCity</h2>
+        {% if messages %}
+            {% for message in messages %}
+                <div class="bg-{{ message.tags }}-100 border border-{{ message.tags }}-400 text-{{ message.tags }}-700 px-4 py-2 rounded relative mb-4">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+
+            <div>
+                <label for="id_username" class="block text-gray-700 font-medium">Username</label>
+                {{ form.username }}
+                {% comment %} <input type="text" name="username" id="id_username" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"> {% endcomment %}
+
+                {% if form.username.errors %}
+                    <p class="text-red-500 text-sm mt-1">{{ form.username.errors }}</p>
+                {% endif %}
+            </div>
+
+            <div>
+                <label for="id_password" class="block text-gray-700 font-medium">Password</label>
+                {{ form.password }}
+                {% if form.password.errors %}
+                    <p class="text-red-500 text-sm mt-1">{{ form.password.errors }}</p>
+                {% endif %}
+            </div>
+
+            <div>
+                <label for="id_user_type" class="block text-gray-700 font-medium">User Type</label>
+                {{ form.user_type }}
+                {% if form.user_type.errors %}
+                    <p class="text-red-500 text-sm mt-1">{{ form.user_type.errors }}</p>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600">Login</button>
+        </form>
+
+        <div class="text-center mt-4">
+            <a href="{% url 'forgot_password' %}" class="text-blue-500 text-sm">Forgot Password?</a>
+            <p class="mt-2 text-sm">Don't have an account? <a href="{% url 'register' %}" class="text-blue-500">Register</a></p>
+        </div>
+    </div>
+
+</body>
+</html>

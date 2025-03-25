@@ -1,0 +1,321 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% load custom_filters %}
+{% block title %}About CleanCity | Smart Waste Management{% endblock %}
+
+{% block content %}
+<!-- Hero section -->
+<section class="relative pt-32 pb-20 overflow-hidden">
+    <!-- Background elements -->
+    <div class="absolute inset-0 bg-accent/30 -z-10"></div>
+    <div class="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-background to-transparent -z-10"></div>
+    
+    <div class="container mx-auto px-4">
+        <div class="max-w-3xl mx-auto text-center animate-fade-in-up">
+            <h1 class="text-4xl md:text-5xl font-bold mb-6">Revolutionizing Waste Management</h1>
+            <p class="text-xl text-foreground/80 leading-relaxed mb-10">
+                At CleanCity, we're building a comprehensive digital tracking system that connects citizens, municipalities, and waste processing vendors in a sustainable ecosystem.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- Mission section -->
+<section class="py-20">
+  <div class="container mx-auto px-4">
+    <div class="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
+      <div class="flex-1 order-2 lg:order-1 animate-fade-in-up">
+        <div class="max-w-xl">
+          <h2 class="text-3xl font-bold mb-6">Our Mission</h2>
+          <p class="text-lg text-foreground/80 mb-6">
+            We believe technology can transform waste management from a burden into an opportunity. Our mission is to create cleaner, more sustainable cities through intelligent waste tracking and processing.
+          </p>
+          <p class="text-lg text-foreground/80">
+            By connecting all stakeholders on a single platform, we're creating transparency, efficiency, and accountability throughout the entire waste management lifecycle.
+          </p>
+        </div>
+      </div>
+      <div class="flex-1 order-1 lg:order-2 animate-fade-in">
+        <div class="relative aspect-square max-w-md mx-auto rounded-2xl overflow-hidden shadow-xl">
+          <img src="https://images.unsplash.com/photo-1532996122724-e3c354a0b15b" alt="CleanCity mission" class="w-full h-full object-cover"/>
+          <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+          <div class="absolute bottom-0 left-0 w-full p-6">
+            <div class="glass-card rounded-xl p-4">
+              <p class="text-white text-sm font-medium">Creating sustainable cities through technology</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Stakeholders section -->
+<section class="py-20 bg-accent/20">
+  <div class="container mx-auto px-4">
+    <div class="text-center max-w-3xl mx-auto mb-16">
+      <h2 class="text-3xl font-bold mb-6">Connecting All Stakeholders</h2>
+      <p class="text-lg text-foreground/80">
+        Our platform brings together everyone involved in waste management, creating a collaborative ecosystem that benefits all parties.
+      </p>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <!-- Public Users Card -->
+      <div class="bg-card rounded-xl overflow-hidden shadow-md transition-transform hover:translate-y-[-5px] animate-fade-in-up" style="animation-delay: 0.1s;">
+        <div class="aspect-video bg-primary/10 relative">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-24 w-24 text-primary absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-20">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+        </div>
+        <div class="p-6">
+          <h3 class="text-xl font-bold mb-4">For Public Users</h3>
+          <ul class="space-y-3 text-foreground/80">
+            <li class="flex items-start gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary mt-1"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Easy waste issue reporting</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary mt-1"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Track personal recycling impact</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary mt-1"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Waste collection schedule alerts</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary mt-1"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Recycling education resources</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary mt-1"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Community challenges and rewards</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+      
+      <!-- Municipality Card -->
+      <div class="bg-card rounded-xl overflow-hidden shadow-md transition-transform hover:translate-y-[-5px] animate-fade-in-up" style="animation-delay: 0.2s;">
+        <div class="aspect-video bg-primary/10 relative">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-24 w-24 text-primary absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-20">
+            <rect width="16" height="20" x="4" y="2" rx="2" ry="2"></rect>
+            <path d="M9 22v-4h6v4"></path>
+            <path d="M8 6h.01"></path>
+            <path d="M16 6h.01"></path>
+            <path d="M12 6h.01"></path>
+            <path d="M12 10h.01"></path>
+            <path d="M12 14h.01"></path>
+            <path d="M16 10h.01"></path>
+            <path d="M16 14h.01"></path>
+            <path d="M8 10h.01"></path>
+            <path d="M8 14h.01"></path>
+          </svg>
+        </div>
+        <div class="p-6">
+          <h3 class="text-xl font-bold mb-4">For Municipalities</h3>
+          <ul class="space-y-3 text-foreground/80">
+            <li class="flex items-start gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary mt-1"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Real-time waste bin monitoring</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary mt-1"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Optimized collection routes</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary mt-1"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Budget forecasting tools</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary mt-1"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Performance analytics dashboard</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary mt-1"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Citizen communication tools</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+      
+      <!-- Vendors Card -->
+      <div class="bg-card rounded-xl overflow-hidden shadow-md transition-transform hover:translate-y-[-5px] animate-fade-in-up" style="animation-delay: 0.3s;">
+        <div class="aspect-video bg-primary/10 relative">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-24 w-24 text-primary absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-20">
+            <path d="M7 2h10"></path>
+            <path d="M5 8h14"></path>
+            <path d="M16 22H8a4 4 0 0 1-4-4V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v14a4 4 0 0 1-4 4Z"></path>
+            <path d="M9 16a2 2 0 0 1 0-4"></path>
+            <path d="M15 12a2 2 0 0 1 0 4"></path>
+          </svg>
+        </div>
+        <div class="p-6">
+          <h3 class="text-xl font-bold mb-4">For Waste Processors</h3>
+          <ul class="space-y-3 text-foreground/80">
+            <li class="flex items-start gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary mt-1"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Incoming waste stream forecasting</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary mt-1"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Material quality tracking</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary mt-1"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Automated documentation</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary mt-1"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Integration with processing systems</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary mt-1"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Sustainability metrics reporting</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- How it works -->
+<section class="py-20">
+  <div class="container mx-auto px-4">
+    <div class="text-center max-w-3xl mx-auto mb-16">
+      <h2 class="text-3xl font-bold mb-6">How Our System Works</h2>
+      <p class="text-lg text-foreground/80">
+        Our digital tracking system connects the entire waste management ecosystem through intelligent technology.
+      </p>
+    </div>
+    
+    <div class="relative">
+      <!-- Connection line -->
+      <div class="absolute top-1/2 left-0 w-full h-0.5 bg-primary/30 -z-10 hidden md:block"></div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <!-- Step 1 -->
+        <div class="text-center relative animate-fade-in-up" style="animation-delay: 0.1s;">
+          <div class="w-16 h-16 mx-auto bg-primary text-white rounded-full flex items-center justify-center mb-6 relative z-10">
+            <span class="text-xl font-bold">1</span>
+          </div>
+          <h3 class="text-lg font-bold mb-2">Waste Generation</h3>
+          <p class="text-foreground/70">Citizens dispose waste and report issues via our mobile app</p>
+        </div>
+        
+        <!-- Step 2 -->
+        <div class="text-center relative animate-fade-in-up" style="animation-delay: 0.2s;">
+          <div class="w-16 h-16 mx-auto bg-primary text-white rounded-full flex items-center justify-center mb-6 relative z-10">
+            <span class="text-xl font-bold">2</span>
+          </div>
+          <h3 class="text-lg font-bold mb-2">Collection Planning</h3>
+          <p class="text-foreground/70">Municipalities optimize collection routes based on real-time data</p>
+        </div>
+        
+        <!-- Step 3 -->
+        <div class="text-center relative animate-fade-in-up" style="animation-delay: 0.3s;">
+          <div class="w-16 h-16 mx-auto bg-primary text-white rounded-full flex items-center justify-center mb-6 relative z-10">
+            <span class="text-xl font-bold">3</span>
+          </div>
+          <h3 class="text-lg font-bold mb-2">Processing Handoff</h3>
+          <p class="text-foreground/70">Digital transfer of waste to processing vendors with complete tracking</p>
+        </div>
+        
+        <!-- Step 4 -->
+        <div class="text-center relative animate-fade-in-up" style="animation-delay: 0.4s;">
+          <div class="w-16 h-16 mx-auto bg-primary text-white rounded-full flex items-center justify-center mb-6 relative z-10">
+            <span class="text-xl font-bold">4</span>
+          </div>
+          <h3 class="text-lg font-bold mb-2">Analytics & Reporting</h3>
+          <p class="text-foreground/70">Full-cycle reporting with environmental impact metrics for all stakeholders</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Team section -->
+<section class="py-20 bg-accent/20">
+  <div class="container mx-auto px-4">
+    <div class="text-center max-w-3xl mx-auto mb-16">
+      <h2 class="text-3xl font-bold mb-6">Our Expert Team</h2>
+      <p class="text-lg text-foreground/80">
+        Founded by experts in technology, environmental science, and urban planning, our team is committed to transforming waste management.
+      </p>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {% for member in team_members %}
+      <div class="bg-card rounded-xl overflow-hidden shadow-md animate-fade-in-up" style="animation-delay: {{ forloop.counter0|multiply:0.1 }}s;">
+        <div class="aspect-square">
+          <img 
+            src="{% if member.image %}{{ member.image }}{% else %}{% static 'images/placeholder-avatar.jpg' %}{% endif %}" 
+            alt="{{ member.name }}" 
+            class="w-full h-full object-cover"
+          />
+        </div>
+        <div class="p-6">
+          <h3 class="text-xl font-bold mb-1">{{ member.name }}</h3>
+          <p class="text-primary font-medium mb-3">{{ member.role }}</p>
+          <p class="text-foreground/70 mb-4">{{ member.bio }}</p>
+          <div class="flex gap-3">
+            {% if member.linkedin %}
+            <a href="{{ member.linkedin }}" class="text-foreground/60 hover:text-primary transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+                <rect x="2" y="9" width="4" height="12"></rect>
+                <circle cx="4" cy="4" r="2"></circle>
+              </svg>
+            </a>
+            {% endif %}
+            {% if member.twitter %}
+            <a href="{{ member.twitter }}" class="text-foreground/60 hover:text-primary transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path>
+              </svg>
+            </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- Call to action -->
+<section class="py-20 relative overflow-hidden">
+  <div class="absolute inset-0 bg-primary/10 -z-10"></div>
+  <div class="absolute top-0 right-0 -z-10">
+    <svg width="404" height="404" fill="none" viewBox="0 0 404 404">
+      <defs>
+        <pattern id="pattern" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+          <rect x="0" y="0" width="4" height="4" class="text-primary/20" fill="currentColor"></rect>
+        </pattern>
+      </defs>
+      <rect width="404" height="404" fill="url(#pattern)"></rect>
+    </svg>
+  </div>
+  
+  <div class="container mx-auto px-4">
+    <div class="max-w-3xl mx-auto text-center">
+      <h2 class="text-3xl font-bold mb-6">Join the Waste Management Revolution</h2>
+      <p class="text-lg text-foreground/80 mb-10">
+        Whether you're a municipality looking to optimize your waste management, a processing vendor seeking digital integration, or a citizen wanting to make a difference, we have a solution for you.
+      </p>
+      {% comment %} <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a href="{% url 'contact' %}" class="px-6 py-3 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors duration-200">
+          Contact Us
+        </a>
+        <a href="{% url 'solutions' %}" class="px-6 py-3 border border-primary/20 rounded-md hover:bg-primary/5">
+          Explore Solutions
+        </a>
+      </div> {% endcomment %}
+    </div>
+  </div>
+</section>
+{% endblock %}

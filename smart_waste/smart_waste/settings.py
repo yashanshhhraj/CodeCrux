@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 import mongoengine
+from pymongo import MongoClient
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -86,16 +87,44 @@ WSGI_APPLICATION = 'smart_waste.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+SESSION_ENGINE = "mongo_sessions.backends.mongodb"
+SESSION_COOKIE_NAME = "mongo_sessionid"
+
+# Connect to MongoDB Atlas
+MONGO_CLIENT = MongoClient("mongodb+srv://codecrux001:CodeCrux123@codecrux.zaczo.mongodb.net/?retryWrites=true&w=majority")
+
+# Select your database
+MONGO_DB = MONGO_CLIENT["CodeCrux"]
+MONGO_COLLECTION = MONGO_DB["users"]
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'djongo',  # Use djongo for MongoDB
-        'NAME': 'CodeCrux',  # Replace with your database name
-        'ENFORCE_SCHEMA': False,  # Disable schema enforcement
-        'CLIENT': {
-            'host': 'mongodb+srv://codecrux001:CodeCrux123@codecrux.zaczo.mongodb.net/codecrux?retryWrites=true&w=majority',  # MongoDB URL
-        }
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",  # Uses SQLite for Django's internal needs
     }
 }
+
+# Store sessions in mongo db
+SESSION_ENGINE = "django.contrib.sessions.backends.db"
+SESSION_CACHE_ALIAS = "default"
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+        "LOCATION": "django_sessions",
+    }
+}
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'djongo',  # Use djongo for MongoDB
+#         'NAME': 'CodeCrux',  # Replace with your database name
+#         'ENFORCE_SCHEMA': False,  # Disable schema enforcement
+#         'CLIENT': {
+#             'host': 'mongodb+srv://codecrux001:CodeCrux123@codecrux.zaczo.mongodb.net/codecrux?retryWrites=true&w=majority',  # MongoDB URL
+#         }
+#     }
+# }
 
 # DATABASES = {
 #     'default': {
@@ -105,9 +134,9 @@ DATABASES = {
 # }
 
 # Mongo Engine
-mongoengine.connect(
-    host='mongodb+srv://codecrux001:CodeCrux123@codecrux.zaczo.mongodb.net/codecrux?retryWrites=true&w=majority'
-)
+# mongoengine.connect(
+#     host='mongodb+srv://codecrux001:CodeCrux123@codecrux.zaczo.mongodb.net/codecrux?retryWrites=true&w=majority'
+# )
 
 
 # Password validation

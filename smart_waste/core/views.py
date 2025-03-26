@@ -1,11 +1,18 @@
 from django.shortcuts import render, redirect
+from django.urls import reverse
 from django.templatetags.static import static
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.views import View
 from .forms import CustomLoginForm, UserRegistrationForm
-from .models import WasteTracking, ComplianceReport, UnmappedWasteAlert, Vendor, WasteType, UserProfile
+from .models import WasteTracking, ComplianceReport, UnmappedWasteAlert, Vendor, WasteType, UserProfile, GarbageReport, UserProfile, CollectionVehicle
 from .forms import WasteTrackingForm
+from werkzeug.security import generate_password_hash, check_password_hash
+from django.conf import settings
+from django.contrib.auth.decorators import login_required
+
+db = settings.MONGO_DB
+users_collection = db["users"]
 
 def landing_page(request):
     features = [
@@ -83,47 +90,56 @@ def about_view(request):
 
 class LoginView(View):
     template_name = 'core/login.html'
-    
+
     def get(self, request):
-        # If user is already logged in, redirect to home
-        if request.user.is_authenticated:
-            return redirect('home')
-        
+        # If user is already logged in, redirect to their respective dashboard
+        if request.session.get("user_id"):
+            return redirect(self.get_dashboard_url(request.session.get("user_type")))
+
         form = CustomLoginForm()
         return render(request, self.template_name, {'form': form})
-    
+
     def post(self, request):
         form = CustomLoginForm(request.POST)
-        
+
         if form.is_valid():
-            username = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password')
-            user_type = form.cleaned_data.get('user_type')
-            
-            # Authenticate user
-            user = authenticate(username=username, password=password)
-            
-            if user is not None:
-                # Check if user type matches
-                if hasattr(user, 'profile') and user.profile.user_type == user_type:
-                    login(request, user)
-                    messages.success(request, f'Welcome back, {user.username}!')
-                    
+            username = form.cleaned_data.get("username")
+            password = form.cleaned_data.get("password")
+            user_type = form.cleaned_data.get("user_type")
+
+            # Get MongoDB collection
+            db = settings.MONGO_DB
+            users_collection = db["users"]
+
+            # Find user in MongoDB
+            user = users_collection.find_one({"username": username})
+
+            if user and check_password(user["password"], password):  # Check hashed password
+                if user["user_type"] == user_type:  # Match user type
+                    # Store user session (since Django's `login()` does not work)
+                    request.session["user_id"] = str(user["_id"])
+                    request.session["username"] = user["username"]
+                    request.session["user_type"] = user["user_type"]
+
+                    messages.success(request, f"Welcome back, {user['username']}!")
+
                     # Redirect based on user type
-                    if user_type == 'public':
-                        return redirect('public_dashboard')
-                    elif user_type == 'municipal':
-                        return redirect('municipal_dashboard')
-                    elif user_type == 'vendor':
-                        return redirect('vendor_dashboard')
-                    else:
-                        return redirect('home')
+                    return redirect(self.get_dashboard_url(user_type))
                 else:
-                    messages.error(request, 'Invalid user type for this account.')
+                    messages.error(request, "Invalid user type for this account.")
             else:
-                messages.error(request, 'Invalid username or password.')
-        
-        return render(request, self.template_name, {'form': form})
+                messages.error(request, "Invalid username or password.")
+
+        return render(request, self.template_name, {"form": form})
+
+    def get_dashboard_url(self, user_type):
+        """Returns the correct dashboard URL based on user type"""
+        dashboard_urls = {
+            "public": "public_dashboard",
+            "municipal": "municipal_dashboard",
+            "vendor": "vendor_dashboard",
+        }
+        return reverse(dashboard_urls.get(user_type, "home"))  # Default to home if type is invalid
 
 class LogoutView(View):
     def get(self, request):
@@ -146,29 +162,53 @@ class ForgotPasswordView(View):
 
 class RegisterView(View):
     template_name = 'core/register.html'
-    
+
     def get(self, request):
         form = UserRegistrationForm()
         return render(request, self.template_name, {'form': form})
-    
+
     def post(self, request):
         form = UserRegistrationForm(request.POST)
-        
-        if form.is_valid():
-            user = form.save()
-            # Create user profile with selected user type
-            user_type = form.cleaned_data.get('user_type')
-            user.profile.user_type = user_type
-            user.profile.save()
-            
-            messages.success(request, f'Account created for {user.username}! You can now log in.')
-            return redirect('login')
-        
-        return render(request, self.template_name, {'form': form})
 
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
-from .models import GarbageReport, UserProfile, CollectionVehicle
+        if form.is_valid():
+            # Get MongoDB collection
+            db = settings.MONGO_DB
+            users_collection = db["users"]
+
+            # Extract form data
+            username = form.cleaned_data["username"]
+            email = form.cleaned_data["email"]
+            first_name = form.cleaned_data["first_name"]
+            last_name = form.cleaned_data["last_name"]
+            password = form.cleaned_data["password1"]  # ✅ Use 'password1'
+            user_type = form.cleaned_data["user_type"]
+            phone_number = form.cleaned_data["phone_number"]
+
+            # Check if user already exists
+            existing_user = users_collection.find_one({"email": email})
+            if existing_user:
+                messages.error(request, "Email is already registered.")
+                return render(request, self.template_name, {'form': form})
+
+            # Hash password before storing it
+            hashed_password = generate_password_hash(password, method="pbkdf2:sha256")
+
+            # Insert new user into MongoDB
+            users_collection.insert_one({
+                "username": username,
+                "email": email,
+                "first_name": first_name,
+                "last_name": last_name,
+                "password": hashed_password,  # ✅ Hashed password
+                "user_type": user_type,
+                "phone_number": phone_number
+            })
+
+            messages.success(request, f"Account created for {username}! You can now log in.")
+            return redirect("login")
+
+        messages.error(request, "Registration failed. Please correct the errors.")
+        return render(request, self.template_name, {'form': form})
 
 def PublicDashboardView(request):
     """

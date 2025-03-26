@@ -1,8 +1,8 @@
 # forms.py
 from django import forms
-from django.contrib.auth.models import User
-from django.contrib.auth.forms import UserCreationForm
 from .models import Campaign, Reward, VendorWarning, WasteTracking
+from werkzeug.security import generate_password_hash, check_password_hash
+from django.conf import settings 
 
 class CustomLoginForm(forms.Form):
     USER_TYPE_CHOICES = (
@@ -33,19 +33,34 @@ class CustomLoginForm(forms.Form):
             })
 
     def clean(self):
+        """Authenticate the user manually with MongoDB"""
         cleaned_data = super().clean()
-        user_type = cleaned_data.get('user_type')
+        username = cleaned_data.get("username")
+        password = cleaned_data.get("password")
+        user_type = cleaned_data.get("user_type")
 
         if not user_type:
             raise forms.ValidationError("Please select a user type")
 
+        # Get MongoDB collection
+        db = settings.MONGO_DB
+        users_collection = db["users"]
+
+        # Find user in MongoDB
+        user = users_collection.find_one({"username": username})
+
+        if not user:
+            raise forms.ValidationError("Invalid username or password")
+
+        if not check_password_hash(user["password"], password):  # Verify password
+            raise forms.ValidationError("Invalid username or password")
+
+        if user["user_type"] != user_type:  # Verify user type
+            raise forms.ValidationError("Incorrect user type for this account")
+
         return cleaned_data
 
-from django import forms
-from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.models import User
-
-class UserRegistrationForm(UserCreationForm):
+class UserRegistrationForm(forms.Form):
     USER_TYPE_CHOICES = [
         ('', 'Select User Type'),
         ('public', 'Public User'),
@@ -53,34 +68,27 @@ class UserRegistrationForm(UserCreationForm):
         ('vendor', 'Vendor'),
     ]
 
-    email = forms.EmailField(
-        required=True,
-        widget=forms.EmailInput()
-    )
+    username = forms.CharField(widget=forms.TextInput())
+    email = forms.EmailField(widget=forms.EmailInput())
     first_name = forms.CharField(widget=forms.TextInput())
     last_name = forms.CharField(widget=forms.TextInput())
     user_type = forms.ChoiceField(choices=USER_TYPE_CHOICES, widget=forms.Select())
     phone_number = forms.CharField(required=False, widget=forms.TextInput())
-
-    class Meta:
-        model = User
-        fields = ['username', 'email', 'first_name', 'last_name', 'password1', 'password2', 'user_type', 'phone_number']
+    password1 = forms.CharField(widget=forms.PasswordInput())
+    password2 = forms.CharField(widget=forms.PasswordInput())
 
     def __init__(self, *args, **kwargs):
         super(UserRegistrationForm, self).__init__(*args, **kwargs)
-        
+
         # Common Tailwind CSS styles for input fields
         field_classes = "w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        
+
         for field_name, field in self.fields.items():
             if isinstance(field.widget, forms.Select):
-                # Apply Tailwind styles to dropdowns
                 field.widget.attrs.update({'class': field_classes + " bg-white"})
             elif isinstance(field.widget, forms.PasswordInput):
-                # Apply Tailwind styles to password fields
                 field.widget.attrs.update({'class': field_classes, 'placeholder': f'Enter your {field_name.replace("_", " ")}'})
             else:
-                # Apply Tailwind styles to text fields
                 field.widget.attrs.update({'class': field_classes, 'placeholder': f'Enter your {field_name.replace("_", " ")}'})
 
     def clean_user_type(self):
@@ -89,20 +97,28 @@ class UserRegistrationForm(UserCreationForm):
             raise forms.ValidationError("Please select a user type")
         return user_type
 
-    def save(self, commit=True):
-        user = super(UserRegistrationForm, self).save(commit=False)
-        user.email = self.cleaned_data['email']
-        user.first_name = self.cleaned_data['first_name']
-        user.last_name = self.cleaned_data['last_name']
+    def clean(self):
+        cleaned_data = super().clean()
+        password1 = cleaned_data.get("password1")
+        password2 = cleaned_data.get("password2")
 
-        if commit:
-            user.save()
-            # Update user profile after saving
-            user.profile.user_type = self.cleaned_data['user_type']
-            user.profile.phone_number = self.cleaned_data['phone_number']
-            user.profile.save()
+        if password1 and password2 and password1 != password2:
+            self.add_error("password2", "Passwords do not match!")
 
-        return user
+        return cleaned_data
+
+    def save(self):
+        user_data = {
+            "username": self.cleaned_data["username"],
+            "email": self.cleaned_data["email"],
+            "first_name": self.cleaned_data["first_name"],
+            "last_name": self.cleaned_data["last_name"],
+            "user_type": self.cleaned_data["user_type"],
+            "phone_number": self.cleaned_data.get("phone_number", ""),
+            "password": generate_password_hash(self.cleaned_data["password1"]),  # Use password1
+        }
+        settings.MONGO_COLLECTION.insert_one(user_data)  # Save to MongoDB
+        return user_data
 
 
 class ForgotPasswordForm(forms.Form):

@@ -2,7 +2,7 @@
 from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
-from .models import UserProfile, Campaign, Reward, VendorWarning
+from .models import Campaign, Reward, VendorWarning, WasteTracking
 
 class CustomLoginForm(forms.Form):
     USER_TYPE_CHOICES = (
@@ -135,4 +135,14 @@ class WarningForm(forms.ModelForm):
         widgets = {
             'description': forms.Textarea(attrs={'rows': 4}),
             'action_required': forms.Textarea(attrs={'rows': 3}),
+        }
+
+class WasteTrackingForm(forms.ModelForm):
+    class Meta:
+        model = WasteTracking
+        fields = ['waste_type', 'quantity', 'collection_date', 'disposal_date', 'disposal_method', 'disposal_proof', 'notes']
+        widgets = {
+            'collection_date': forms.DateInput(attrs={'type': 'date'}),
+            'disposal_date': forms.DateInput(attrs={'type': 'date'}),
+            'notes': forms.Textarea(attrs={'rows': 3}),
         }

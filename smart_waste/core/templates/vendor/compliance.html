@@ -1,0 +1,225 @@
+{% extends "vendor/base.html" %}
+
+{% block title %}Compliance Reports{% endblock %}
+{% block page_title %}Compliance Reports{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Compliance Reports Table -->
+    <div class="lg:col-span-2 bg-white shadow-lg rounded-lg p-6">
+        <h2 class="text-xl font-semibold text-gray-700 border-b pb-2 mb-4">Compliance Reports</h2>
+        
+        <div class="overflow-x-auto">
+            <table class="w-full border-collapse border border-gray-200 rounded-lg">
+                <thead>
+                    <tr class="bg-gray-100 text-gray-700">
+                        <th class="p-3 border">Report Period</th>
+                        <th class="p-3 border">Title</th>
+                        <th class="p-3 border">Compliance Score</th>
+                        <th class="p-3 border">Published Date</th>
+                        <th class="p-3 border">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for report in compliance_reports %}
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="p-3 border">{{ report.report_period }}</td>
+                        <td class="p-3 border">{{ report.title }}</td>
+                        <td class="p-3 border">
+                            <div class="flex items-center gap-2">
+                                <div class="w-full h-2 rounded bg-gray-200">
+                                    <div class="h-2 rounded 
+                                        {% if report.compliance_score >= 80 %} bg-green-500 
+                                        {% elif report.compliance_score >= 60 %} bg-yellow-500 
+                                        {% else %} bg-red-500 {% endif %}" 
+                                        style="width: {{ report.compliance_score }}%"></div>
+                                </div>
+                                <span class="text-sm font-medium">{{ report.compliance_score }}%</span>
+                            </div>
+                        </td>
+                        <td class="p-3 border">{{ report.published_at|date:"M d, Y" }}</td>
+                        <td class="p-3 border">
+                            <button class="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+                                data-report-id="{{ report.id }}"
+                                data-report-title="{{ report.title }}"
+                                data-report-period="{{ report.report_period }}"
+                                data-report-score="{{ report.compliance_score }}"
+                                data-report-summary="{{ report.summary }}"
+                                onclick="openModal(this)">
+                                View
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center p-4 text-gray-500">No compliance reports available</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if compliance_reports.has_other_pages %}
+        <div class="mt-4 flex justify-center space-x-2">
+            {% if compliance_reports.has_previous %}
+            <a href="?page={{ compliance_reports.previous_page_number }}" class="px-3 py-1 border rounded hover:bg-gray-200">&laquo;</a>
+            {% endif %}
+            
+            {% for i in compliance_reports.paginator.page_range %}
+            <a href="?page={{ i }}" class="px-3 py-1 border rounded {% if compliance_reports.number == i %} bg-blue-600 text-white {% else %} hover:bg-gray-200 {% endif %}">{{ i }}</a>
+            {% endfor %}
+            
+            {% if compliance_reports.has_next %}
+            <a href="?page={{ compliance_reports.next_page_number }}" class="px-3 py-1 border rounded hover:bg-gray-200">&raquo;</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Compliance Overview -->
+    <div class="bg-white shadow-lg rounded-lg p-6">
+        <h2 class="text-xl font-semibold text-gray-700 border-b pb-2 mb-4">Compliance Overview</h2>
+        
+        <div>
+            {% for category, compliance in compliance_overview.items %}
+            <h4 class="text-sm font-semibold text-gray-600">{{ category }} <span class="float-right">{{ compliance }}%</span></h4>
+            <div class="w-full h-2 bg-gray-200 rounded mb-4">
+                <div class="h-2 rounded bg-blue-500" style="width: {{ compliance }}%"></div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- View Report Modal -->
+<div id="viewReportModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white rounded-lg shadow-lg p-6 max-w-lg w-full">
+        <h3 class="text-lg font-semibold mb-3" id="modal-title">Compliance Report</h3>
+        <p class="text-gray-500 mb-3">Period: <span id="modal-period"></span></p>
+        
+        <h5 class="text-md font-semibold">Compliance Score</h5>
+        <div class="flex items-center gap-2">
+            <div class="w-full h-3 rounded bg-gray-200">
+                <div id="modal-score-bar" class="h-3 rounded bg-blue-500"></div>
+            </div>
+            <span id="modal-score-value" class="text-sm font-medium"></span>
+        </div>
+
+        <h5 class="mt-4 text-md font-semibold">Summary</h5>
+        <div id="modal-summary" class="p-3 bg-gray-100 rounded"></div>
+
+        <div class="mt-6 flex justify-end gap-3">
+            <button onclick="closeModal()" class="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400">Close</button>
+            <button class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Download Report</button>
+        </div>
+    </div>
+</div>
+
+<script>
+function openModal(button) {
+    document.getElementById('modal-title').textContent = button.dataset.reportTitle;
+    document.getElementById('modal-period').textContent = button.dataset.reportPeriod;
+    document.getElementById('modal-summary').textContent = button.dataset.reportSummary;
+    
+    let score = button.dataset.reportScore;
+    document.getElementById('modal-score-bar').style.width = score + "%";
+    document.getElementById('modal-score-value').textContent = score + "%";
+    
+    document.getElementById('viewReportModal').classList.remove('hidden');
+}
+
+function closeModal() {
+    document.getElementById('viewReportModal').classList.add('hidden');
+}
+</script>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle View Report button clicks
+        document.querySelectorAll('.view-report-btn').forEach(function(button) {
+            button.addEventListener('click', function() {
+                var reportId = this.getAttribute('data-report-id');
+                var reportTitle = this.getAttribute('data-report-title');
+                var reportPeriod = this.getAttribute('data-report-period');
+                var reportScore = this.getAttribute('data-report-score');
+                var reportSummary = this.getAttribute('data-report-summary');
+                
+                document.getElementById('report-title').textContent = reportTitle;
+                document.getElementById('report-period').textContent = reportPeriod;
+                document.getElementById('report-score-value').textContent = reportScore + '%';
+                document.getElementById('report-summary').textContent = reportSummary;
+                
+                var scoreBar = document.getElementById('report-score-bar');
+                scoreBar.style.width = reportScore + '%';
+                
+                if (reportScore >= 80) {
+                    scoreBar.classList.remove('bg-warning', 'bg-danger');
+                    scoreBar.classList.add('bg-success');
+                } else if (reportScore >= 60) {
+                    scoreBar.classList.remove('bg-success', 'bg-danger');
+                    scoreBar.classList.add('bg-warning');
+                } else {
+                    scoreBar.classList.remove('bg-success', 'bg-warning');
+                    scoreBar.classList.add('bg-danger');
+                }
+                
+                // Here you would typically load additional compliance details via AJAX
+                // For now we'll just simulate that with placeholder content
+                document.getElementById('compliance-details').innerHTML = `
+                    <h5>Detailed Assessment</h5>
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Score</th>
+                                <th>Comments</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Waste Management</td>
+                                <td>${Math.min(100, Math.round(reportScore * 1.1))}%</td>
+                                <td>Good practices overall with timely waste collection.</td>
+                            </tr>
+                            <tr>
+                                <td>Documentation</td>
+                                <td>${Math.min(100, Math.round(reportScore * 0.9))}%</td>
+                                <td>Some disposal proofs were submitted late.</td>
+                            </tr>
+                            <tr>
+                                <td>Operational</td>
+                                <td>${Math.min(100, Math.round(reportScore * 1.05))}%</td>
+                                <td>Vehicle maintenance records are up to date.</td>
+                            </tr>
+                            <tr>
+                                <td>Environmental</td>
+                                <td>${Math.min(100, Math.round(reportScore * 0.95))}%</td>
+                                <td>Minor issues with recycling separation.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <h5 class="mt-4">Recommendations</h5>
+                    <ul class="list-group">
+                        <li class="list-group-item">Improve timeliness of documentation uploads</li>
+                        <li class="list-group-item">Ensure all disposal locations are properly recorded with GPS data</li>
+                        <li class="list-group-item">Enhance waste segregation practices at collection points</li>
+                    </ul>
+                `;
+                
+                // Handle download button
+                document.getElementById('download-report-btn').setAttribute('data-report-id', reportId);
+            });
+        });
+        
+        // Simulate report download functionality
+        document.getElementById('download-report-btn').addEventListener('click', function() {
+            var reportId = this.getAttribute('data-report-id');
+            alert('Download functionality would be implemented here for report ID: ' + reportId);
+        });
+    });
+</script>
+{% endblock %}

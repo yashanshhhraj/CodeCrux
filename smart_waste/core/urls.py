@@ -15,7 +15,7 @@ urlpatterns = [
     # Dashboard routes for different user types
     path('dashboard/public/', views.PublicDashboardView, name='public_dashboard'),
     path('dashboard/municipal/', views.municipal_dashboard, name='municipal_dashboard'),
-    # path('dashboard/vendor/', views.vendor_dashboard, name='vendor_dashboard'),
+    path('dashboard/vendor/', views.vendor_dashboard, name='vendor_dashboard'),
     
     # Profile routes
     # path('profile/', views.ProfileView.as_view(), name='profile'),

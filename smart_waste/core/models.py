@@ -298,3 +298,85 @@ class VendorWarning(models.Model):
     
     def __str__(self):
         return f"{self.vendor.name} - {self.issue_type} - {self.get_status_display()}"
+    
+class WasteTracking(models.Model):
+    DISPOSAL_METHOD_CHOICES = [
+        ('landfill', 'Landfill'),
+        ('recycling', 'Recycling'),
+        ('composting', 'Composting'),
+        ('incineration', 'Incineration'),
+        ('specialized', 'Specialized Treatment'),
+    ]
+    
+    waste_type = models.ForeignKey(WasteType, on_delete=models.CASCADE, related_name='waste_trackings')
+    vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE, related_name='waste_trackings')
+    quantity = models.DecimalField(max_digits=10, decimal_places=2, help_text="Amount in tonnes")
+    collection_date = models.DateField()
+    disposal_date = models.DateField(null=True, blank=True)
+    disposal_method = models.CharField(max_length=20, choices=DISPOSAL_METHOD_CHOICES, default='landfill')
+    disposal_proof = models.ImageField(upload_to='disposal_proofs/', null=True, blank=True)
+    location = models.CharField(max_length=200, blank=True)
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"{self.vendor.name} - {self.waste_type.name} - {self.collection_date}"
+    
+    class Meta:
+        ordering = ['-collection_date']
+
+class ComplianceReport(models.Model):
+    STATUS_CHOICES = [
+        ('draft', 'Draft'),
+        ('published', 'Published'),
+        ('archived', 'Archived'),
+    ]
+    
+    title = models.CharField(max_length=100)
+    vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE, related_name='compliance_reports')
+    report_period = models.CharField(max_length=50, help_text="e.g., 'Q1 2023' or 'January 2023'")
+    summary = models.TextField()
+    compliance_score = models.DecimalField(max_digits=5, decimal_places=2, validators=[MinValueValidator(0), MaxValueValidator(100)])
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_compliance_reports')
+    published_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"{self.vendor.name} - {self.report_period} - {self.compliance_score}%"
+    
+    class Meta:
+        ordering = ['-created_at']
+
+class UnmappedWasteAlert(models.Model):
+    STATUS_CHOICES = [
+        ('new', 'New'),
+        ('under_review', 'Under Review'),
+        ('confirmed', 'Confirmed'),
+        ('false_alarm', 'False Alarm'),
+        ('resolved', 'Resolved'),
+    ]
+    
+    vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE, related_name='unmapped_waste_alerts')
+    detection_date = models.DateTimeField()
+    location = models.CharField(max_length=200)
+    latitude = models.DecimalField(max_digits=9, decimal_places=6)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6)
+    image = models.ImageField(upload_to='unmapped_waste_images/')
+    description = models.TextField()
+    waste_type = models.ForeignKey(WasteType, on_delete=models.SET_NULL, null=True, related_name='unmapped_alerts')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='new')
+    resolution_notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    resolved_at = models.DateTimeField(null=True, blank=True)
+    
+    def __str__(self):
+        return f"{self.vendor.name} - {self.detection_date.strftime('%Y-%m-%d')} - {self.get_status_display()}"
+    
+    class Meta:
+        ordering = ['-detection_date']

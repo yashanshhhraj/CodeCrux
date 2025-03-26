@@ -1,0 +1,96 @@
+{% extends 'vendor/base.html' %}
+
+{% block title %}Edit Waste Tracking Record{% endblock %}
+
+{% block page_title %}Edit Waste Tracking Record{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'vendor_waste_tracking' %}" class="inline-flex items-center px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white text-sm font-medium rounded-md">
+    <i class="bi bi-arrow-left mr-2"></i> Back to Tracking List
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="bg-white shadow-md rounded-lg p-6">
+    <div class="mb-4 border-b pb-2">
+        <h5 class="text-lg font-semibold">Update Waste Record</h5>
+    </div>
+    
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label for="{{ form.waste_type.id_for_label }}" class="block text-sm font-medium text-gray-700">Waste Type</label>
+                {{ form.waste_type }}
+                {% if form.waste_type.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.waste_type.errors }}</p>
+                {% endif %}
+            </div>
+            
+            <div>
+                <label for="{{ form.quantity.id_for_label }}" class="block text-sm font-medium text-gray-700">Quantity (tonnes)</label>
+                {{ form.quantity }}
+                {% if form.quantity.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.quantity.errors }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <div>
+                <label for="{{ form.collection_date.id_for_label }}" class="block text-sm font-medium text-gray-700">Collection Date</label>
+                {{ form.collection_date }}
+                {% if form.collection_date.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.collection_date.errors }}</p>
+                {% endif %}
+            </div>
+            
+            <div>
+                <label for="{{ form.disposal_date.id_for_label }}" class="block text-sm font-medium text-gray-700">Disposal Date</label>
+                {{ form.disposal_date }}
+                {% if form.disposal_date.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.disposal_date.errors }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <label for="{{ form.disposal_method.id_for_label }}" class="block text-sm font-medium text-gray-700">Disposal Method</label>
+            {{ form.disposal_method }}
+            {% if form.disposal_method.errors %}
+                <p class="text-red-500 text-xs mt-1">{{ form.disposal_method.errors }}</p>
+            {% endif %}
+        </div>
+
+        <div class="mt-4">
+            <label for="{{ form.disposal_proof.id_for_label }}" class="block text-sm font-medium text-gray-700">Disposal Proof</label>
+            {% if waste_record.disposal_proof %}
+                <div class="mb-2">
+                    <img src="{{ waste_record.disposal_proof.url }}" alt="Current Disposal Proof" class="max-h-40 rounded-md">
+                    <p class="text-sm text-gray-500">Current image will be replaced if you upload a new one</p>
+                </div>
+            {% endif %}
+            {{ form.disposal_proof }}
+            {% if form.disposal_proof.errors %}
+                <p class="text-red-500 text-xs mt-1">{{ form.disposal_proof.errors }}</p>
+            {% endif %}
+        </div>
+
+        <div class="mt-4">
+            <label for="{{ form.notes.id_for_label }}" class="block text-sm font-medium text-gray-700">Notes</label>
+            {{ form.notes }}
+            {% if form.notes.errors %}
+                <p class="text-red-500 text-xs mt-1">{{ form.notes.errors }}</p>
+            {% endif %}
+        </div>
+
+        <div class="mt-6 flex space-x-4">
+            <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md">
+                <i class="bi bi-save mr-2"></i> Update Record
+            </button>
+            <a href="{% url 'vendor_waste_tracking' %}" class="px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-100 rounded-md text-sm font-medium">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

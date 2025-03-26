@@ -4,6 +4,8 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.views import View
 from .forms import CustomLoginForm, UserRegistrationForm
+from .models import WasteTracking, ComplianceReport, UnmappedWasteAlert, Vendor, WasteType, UserProfile
+from .forms import WasteTrackingForm
 
 def landing_page(request):
     features = [
@@ -188,7 +190,7 @@ def PublicDashboardView(request):
         'collection_points': collection_points,
     }
     
-    return render(request, 'publicview.html', context)
+    return render(request, 'core/publicview.html', context)
 
 @login_required
 def user_dashboard(request):
@@ -450,7 +452,7 @@ def municipal_dashboard(request):
         'user': request.user,
     }
     
-    return render(request, 'municipalview.html', context)
+    return render(request, 'core/municipalview.html', context)
 
 @login_required
 @user_passes_test(is_municipal_admin)
@@ -621,3 +623,274 @@ def reject_claim(request, claim_id):
         claim.save()
         return JsonResponse({'success': True})
     return JsonResponse({'success': False})
+
+# Helper function to check if user is a vendor
+def is_vendor(user):
+    return hasattr(user, 'profile') and user.profile.role == 'vendor'
+
+# Decorator for vendor-only views
+def vendor_required(view_func):
+    def wrapper(request, *args, **kwargs):
+        if not is_vendor(request.user):
+            messages.error(request, "You must be logged in as a vendor to access this page.")
+            return redirect('login')
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+@login_required
+@vendor_required
+def vendor_dashboard(request):
+    """Vendor Dashboard View"""
+    # Get the vendor associated with this user
+    try:
+        vendor = Vendor.objects.get(user=request.user)
+    except Vendor.DoesNotExist:
+        messages.error(request, "No vendor profile found for your account.")
+        return redirect('home')
+    
+    # Basic statistics for dashboard
+    total_waste = WasteTracking.objects.filter(vendor=vendor).aggregate(
+        total=Sum('quantity')
+    )['total'] or 0
+    
+    waste_by_type = WasteTracking.objects.filter(vendor=vendor).values(
+        'waste_type__name'
+    ).annotate(total=Sum('quantity')).order_by('-total')
+    
+    recent_trackings = WasteTracking.objects.filter(vendor=vendor).order_by('-collection_date')[:5]
+    
+    unresolved_alerts = UnmappedWasteAlert.objects.filter(
+        vendor=vendor, 
+        status__in=['new', 'under_review', 'confirmed']
+    ).count()
+    
+    context = {
+        'vendor': vendor,
+        'total_waste': total_waste,
+        'waste_by_type': waste_by_type,
+        'recent_trackings': recent_trackings,
+        'alert_count': unresolved_alerts,
+        'active_tab': 'dashboard',
+    }
+    
+    return render(request, 'vendor/dashboard.html', context)
+
+@login_required
+@vendor_required
+def vendor_waste_tracking(request):
+    """Vendor Waste Tracking View"""
+    try:
+        vendor = Vendor.objects.get(user=request.user)
+    except Vendor.DoesNotExist:
+        messages.error(request, "No vendor profile found for your account.")
+        return redirect('home')
+    
+    waste_records = WasteTracking.objects.filter(vendor=vendor).order_by('-collection_date')
+    
+    # Handle new waste tracking form submission
+    if request.method == 'POST':
+        form = WasteTrackingForm(request.POST, request.FILES)
+        if form.is_valid():
+            waste_tracking = form.save(commit=False)
+            waste_tracking.vendor = vendor
+            waste_tracking.save()
+            messages.success(request, "Waste tracking record added successfully.")
+            return redirect('vendor_waste_tracking')
+    else:
+        form = WasteTrackingForm()
+    
+    # Get all waste types for the form
+    waste_types = WasteType.objects.all()
+    
+    context = {
+        'vendor': vendor,
+        'waste_records': waste_records,
+        'form': form,
+        'waste_types': waste_types,
+        'alert_count': UnmappedWasteAlert.objects.filter(
+            vendor=vendor, 
+            status__in=['new', 'under_review', 'confirmed']
+        ).count(),
+        'active_tab': 'waste_tracking',
+    }
+    
+    return render(request, 'vendor/waste_tracking.html', context)
+
+@login_required
+@vendor_required
+def vendor_waste_edit(request, tracking_id):
+    """Edit an existing waste tracking record"""
+    try:
+        vendor = Vendor.objects.get(user=request.user)
+    except Vendor.DoesNotExist:
+        messages.error(request, "No vendor profile found for your account.")
+        return redirect('home')
+    
+    waste_record = get_object_or_404(WasteTracking, id=tracking_id, vendor=vendor)
+    
+    if request.method == 'POST':
+        form = WasteTrackingForm(request.POST, request.FILES, instance=waste_record)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Waste tracking record updated successfully.")
+            return redirect('vendor_waste_tracking')
+    else:
+        form = WasteTrackingForm(instance=waste_record)
+    
+    context = {
+        'form': form,
+        'waste_record': waste_record,
+        'alert_count': UnmappedWasteAlert.objects.filter(
+            vendor=vendor, 
+            status__in=['new', 'under_review', 'confirmed']
+        ).count(),
+        'active_tab': 'waste_tracking',
+    }
+    
+    return render(request, 'vendor/waste_edit.html', context)
+
+@login_required
+@vendor_required
+def vendor_compliance(request):
+    """Vendor Compliance Reports View"""
+    try:
+        vendor = Vendor.objects.get(user=request.user)
+    except Vendor.DoesNotExist:
+        messages.error(request, "No vendor profile found for your account.")
+        return redirect('home')
+    
+    compliance_reports = ComplianceReport.objects.filter(vendor=vendor).order_by('-published_at')
+    
+    context = {
+        'vendor': vendor,
+        'compliance_reports': compliance_reports,
+        'alert_count': UnmappedWasteAlert.objects.filter(
+            vendor=vendor, 
+            status__in=['new', 'under_review', 'confirmed']
+        ).count(),
+        'active_tab': 'compliance',
+    }
+    
+    return render(request, 'vendor/compliance.html', context)
+
+@login_required
+@vendor_required
+def vendor_compliance_detail(request, report_id):
+    """Detailed view for a specific compliance report"""
+    try:
+        vendor = Vendor.objects.get(user=request.user)
+    except Vendor.DoesNotExist:
+        messages.error(request, "No vendor profile found for your account.")
+        return redirect('home')
+    
+    report = get_object_or_404(ComplianceReport, id=report_id, vendor=vendor)
+    
+    context = {
+        'vendor': vendor,
+        'report': report,
+        'alert_count': UnmappedWasteAlert.objects.filter(
+            vendor=vendor, 
+            status__in=['new', 'under_review', 'confirmed']
+        ).count(),
+        'active_tab': 'compliance',
+    }
+    
+    return render(request, 'vendor/compliance_detail.html', context)
+
+@login_required
+@vendor_required
+def vendor_alerts(request):
+    """Vendor Alerts View"""
+    try:
+        vendor = Vendor.objects.get(user=request.user)
+    except Vendor.DoesNotExist:
+        messages.error(request, "No vendor profile found for your account.")
+        return redirect('home')
+    
+    alerts = UnmappedWasteAlert.objects.filter(vendor=vendor).order_by('-detection_date')
+    
+    context = {
+        'vendor': vendor,
+        'alerts': alerts,
+        'alert_count': alerts.filter(status__in=['new', 'under_review', 'confirmed']).count(),
+        'active_tab': 'alerts',
+    }
+    
+    return render(request, 'vendor/alerts.html', context)
+
+@login_required
+@vendor_required
+def vendor_alert_detail(request, alert_id):
+    """Detailed view for a specific alert"""
+    try:
+        vendor = Vendor.objects.get(user=request.user)
+    except Vendor.DoesNotExist:
+        messages.error(request, "No vendor profile found for your account.")
+        return redirect('home')
+    
+    alert = get_object_or_404(UnmappedWasteAlert, id=alert_id, vendor=vendor)
+    
+    if request.method == 'POST' and 'action' in request.POST:
+        action = request.POST['action']
+        
+        if action == 'acknowledge':
+            alert.status = 'under_review'
+            alert.save()
+            messages.success(request, "Alert has been acknowledged and marked as under review.")
+        
+        elif action == 'resolve':
+            alert.status = 'resolved'
+            alert.resolution_notes = request.POST.get('resolution_notes', '')
+            alert.resolved_at = timezone.now()
+            alert.save()
+            messages.success(request, "Alert has been marked as resolved.")
+        
+        elif action == 'report':
+            alert.status = 'false_alarm'
+            alert.resolution_notes = request.POST.get('resolution_notes', '')
+            alert.save()
+            messages.success(request, "Alert has been reported as a false alarm.")
+    
+    context = {
+        'vendor': vendor,
+        'alert': alert,
+        'alert_count': UnmappedWasteAlert.objects.filter(
+            vendor=vendor, 
+            status__in=['new', 'under_review', 'confirmed']
+        ).count(),
+        'active_tab': 'alerts',
+    }
+    
+    return render(request, 'vendor/alert_detail.html', context)
+
+@login_required
+@vendor_required
+def vendor_profile(request):
+    """Vendor Profile View"""
+    try:
+        vendor = Vendor.objects.get(user=request.user)
+    except Vendor.DoesNotExist:
+        messages.error(request, "No vendor profile found for your account.")
+        return redirect('home')
+    
+    # Calculate some statistics
+    total_waste = WasteTracking.objects.filter(vendor=vendor).aggregate(
+        total=Sum('quantity')
+    )['total'] or 0
+    
+    total_alerts = UnmappedWasteAlert.objects.filter(vendor=vendor).count()
+    compliance_score = vendor.calculate_rating() * 20  # Convert 5-star rating to percentage
+    
+    context = {
+        'vendor': vendor,
+        'total_waste': total_waste,
+        'total_alerts': total_alerts,
+        'compliance_score': compliance_score,
+        'alert_count': UnmappedWasteAlert.objects.filter(
+            vendor=vendor, 
+            status__in=['new', 'under_review', 'confirmed']
+        ).count(),
+        'active_tab': 'profile',
+    }
+    
+    return render(request, 'vendor/profile.html', context)

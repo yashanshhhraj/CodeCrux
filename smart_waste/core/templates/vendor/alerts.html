@@ -1,0 +1,397 @@
+{% extends "vendor/base.html" %}
+
+{% block title %}Compliance Alerts{% endblock %}
+{% block page_title %}Compliance Alerts{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <div class="mb-6">
+        <div class="bg-white shadow-md rounded-lg overflow-hidden">
+            <div class="px-6 py-4 bg-gray-50 flex items-center justify-between">
+                <h6 class="text-xl font-bold text-gray-800">Active Alerts</h6>
+                <div>
+                    <form class="flex items-center space-x-2" method="get">
+                        <select name="level" class="form-select text-sm border rounded py-1 px-2 w-36">
+                            <option value="">All Levels</option>
+                            <option value="critical" {% if selected_level == 'critical' %}selected{% endif %}>Critical</option>
+                            <option value="high" {% if selected_level == 'high' %}selected{% endif %}>High</option>
+                            <option value="medium" {% if selected_level == 'medium' %}selected{% endif %}>Medium</option>
+                            <option value="low" {% if selected_level == 'low' %}selected{% endif %}>Low</option>
+                        </select>
+                        <select name="status" class="form-select text-sm border rounded py-1 px-2 w-36">
+                            <option value="">All Status</option>
+                            <option value="pending" {% if selected_status == 'pending' %}selected{% endif %}>Pending</option>
+                            <option value="acknowledged" {% if selected_status == 'acknowledged' %}selected{% endif %}>Acknowledged</option>
+                            <option value="resolved" {% if selected_status == 'resolved' %}selected{% endif %}>Resolved</option>
+                        </select>
+                        <button type="submit" class="btn btn-primary bg-blue-500 text-white text-sm px-3 py-1 rounded hover:bg-blue-600 transition">Filter</button>
+                    </form>
+                </div>
+            </div>
+            <div class="p-6">
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse">
+                        <thead>
+                            <tr class="bg-gray-100 border-b">
+                                <th class="p-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                <th class="p-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Issue Type</th>
+                                <th class="p-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Level</th>
+                                <th class="p-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="p-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for warning in vendor_warnings %}
+                            <tr>
+                                <td class="p-3">{{ warning.created_at|date:"M d, Y" }}</td>
+                                <td class="p-3">{{ warning.issue_type }}</td>
+                                <td class="p-3">
+                                    <span class="px-2 py-1 text-xs font-semibold rounded-full 
+                                        {% if warning.level == 'critical' %}bg-red-100 text-red-800
+                                        {% elif warning.level == 'high' %}bg-yellow-100 text-yellow-800
+                                        {% elif warning.level == 'medium' %}bg-blue-100 text-blue-800
+                                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                        {{ warning.get_level_display }}
+                                    </span>
+                                </td>
+                                <td class="p-3">
+                                    <span class="px-2 py-1 text-xs font-semibold rounded-full 
+                                        {% if warning.status == 'resolved' %}bg-green-100 text-green-800
+                                        {% elif warning.status == 'acknowledged' %}bg-blue-100 text-blue-800
+                                        {% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                                        {{ warning.get_status_display }}
+                                    </span>
+                                </td>
+                                <td class="p-3 space-x-2">
+                                    <button type="button" class="btn btn-primary inline-flex items-center bg-blue-500 text-white text-xs px-2 py-1 rounded hover:bg-blue-600 transition view-warning-btn" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#viewWarningModal" 
+                                            data-warning-id="{{ warning.id }}"
+                                            data-warning-type="{{ warning.issue_type }}"
+                                            data-warning-level="{{ warning.get_level_display }}"
+                                            data-warning-status="{{ warning.get_status_display }}"
+                                            data-warning-description="{{ warning.description }}"
+                                            data-warning-action="{{ warning.action_required }}">
+                                        View
+                                    </button>
+                                    
+                                    {% if warning.status == 'pending' %}
+                                    <form method="post" action="{% url 'acknowledge_warning' %}" class="inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="warning_id" value="{{ warning.id }}">
+                                        <button type="submit" class="btn btn-info inline-flex items-center bg-blue-400 text-white text-xs px-2 py-1 rounded hover:bg-blue-500 transition">
+                                            Acknowledge
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                    
+                                    {% if warning.status != 'resolved' %}
+                                    <button type="button" class="btn btn-success inline-flex items-center bg-green-500 text-white text-xs px-2 py-1 rounded hover:bg-green-600 transition resolve-warning-btn" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#resolveWarningModal" 
+                                            data-warning-id="{{ warning.id }}">
+                                        Resolve
+                                    </button>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="p-3 text-center text-gray-500">No compliance alerts found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {% if vendor_warnings.has_other_pages %}
+                <nav aria-label="Page navigation" class="mt-4 flex justify-center">
+                    <ul class="inline-flex items-center -space-x-px">
+                        {% if vendor_warnings.has_previous %}
+                        <li>
+                            <a href="?page={{ vendor_warnings.previous_page_number }}{% if selected_level %}&level={{ selected_level }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}" 
+                               class="block py-2 px-3 ml-0 leading-tight text-gray-500 bg-white rounded-l-lg border border-gray-300 hover:bg-gray-100 hover:text-gray-700">
+                                <span class="sr-only">Previous</span>
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                </svg>
+                            </a>
+                        </li>
+                        {% endif %}
+
+                        {% for i in vendor_warnings.paginator.page_range %}
+                            {% if vendor_warnings.number == i %}
+                            <li>
+                                <span class="z-10 py-2 px-3 leading-tight text-blue-600 bg-blue-50 border border-blue-300 hover:bg-blue-100 hover:text-blue-700">{{ i }}</span>
+                            </li>
+                            {% else %}
+                            <li>
+                                <a href="?page={{ i }}{% if selected_level %}&level={{ selected_level }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}" 
+                                   class="py-2 px-3 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700">{{ i }}</a>
+                            </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if vendor_warnings.has_next %}
+                        <li>
+                            <a href="?page={{ vendor_warnings.next_page_number }}{% if selected_level %}&level={{ selected_level }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}" 
+                               class="block py-2 px-3 leading-tight text-gray-500 bg-white rounded-r-lg border border-gray-300 hover:bg-gray-100 hover:text-gray-700">
+                                <span class="sr-only">Next</span>
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                </svg>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Unmapped Waste Alerts Section (similarly converted to Tailwind) -->
+    <div class="mb-6">
+        <div class="bg-white shadow-md rounded-lg overflow-hidden">
+            <div class="px-6 py-4 bg-gray-50">
+                <h6 class="text-xl font-bold text-gray-800">Unmapped Waste Alerts</h6>
+            </div>
+            <div class="p-6">
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse">
+                        <thead>
+                            <tr class="bg-gray-100 border-b">
+                                <th class="p-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Detection Date</th>
+                                <th class="p-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+                                <th class="p-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Waste Type</th>
+                                <th class="p-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="p-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for alert in unmapped_waste_alerts %}
+                            <tr>
+                                <td class="p-3">{{ alert.detection_date|date:"M d, Y" }}</td>
+                                <td class="p-3">{{ alert.location }}</td>
+                                <td class="p-3">{{ alert.waste_type.name|default:"Unknown" }}</td>
+                                <td class="p-3">
+                                    <span class="px-2 py-1 text-xs font-semibold rounded-full 
+                                        {% if alert.status == 'resolved' %}bg-green-100 text-green-800
+                                        {% elif alert.status == 'confirmed' %}bg-red-100 text-red-800
+                                        {% elif alert.status == 'under_review' %}bg-blue-100 text-blue-800
+                                        {% elif alert.status == 'false_alarm' %}bg-gray-100 text-gray-800
+                                        {% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                                        {{ alert.get_status_display }}
+                                    </span>
+                                </td>
+                                <td class="p-3 space-x-2">
+                                    <button type="button" class="btn btn-primary inline-flex items-center bg-blue-500 text-white text-xs px-2 py-1 rounded hover:bg-blue-600 transition view-unmapped-alert-btn" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#viewUnmappedAlertModal" 
+                                            data-alert-id="{{ alert.id }}"
+                                            data-alert-date="{{ alert.detection_date|date:'M d, Y' }}"
+                                            data-alert-location="{{ alert.location }}"
+                                            data-alert-coords="{{ alert.latitude }}, {{ alert.longitude }}"
+                                            data-alert-description="{{ alert.description }}"
+                                            data-alert-status="{{ alert.get_status_display }}"
+                                            data-alert-image="{{ alert.image.url }}">
+                                        View
+                                    </button>
+                                    
+                                    {% if alert.status == 'new' %}
+                                    <form method="post" action="{% url 'review_unmapped_alert' %}" class="inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="alert_id" value="{{ alert.id }}">
+                                        <button type="submit" class="btn btn-info inline-flex items-center bg-blue-400 text-white text-xs px-2 py-1 rounded hover:bg-blue-500 transition">
+                                            Review
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                    
+                                    {% if alert.status != 'resolved' and alert.status != 'false_alarm' %}
+                                    <button type="button" class="btn btn-success inline-flex items-center bg-green-500 text-white text-xs px-2 py-1 rounded hover:bg-green-600 transition resolve-unmapped-alert-btn" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#resolveUnmappedAlertModal" 
+                                            data-alert-id="{{ alert.id }}">
+                                        Resolve
+                                    </button>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="p-3 text-center text-gray-500">No unmapped waste alerts found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals (converted to Tailwind) -->
+    <!-- View Warning Modal -->
+    <div class="modal fixed inset-0 z-50 hidden overflow-y-auto" id="viewWarningModal" tabindex="-1" aria-labelledby="viewWarningModalLabel" aria-hidden="true">
+        <div class="modal-dialog relative w-auto pointer-events-none max-w-lg mx-auto my-8">
+            <div class="modal-content border-none shadow-lg relative flex flex-col w-full pointer-events-auto bg-white rounded-lg">
+                <div class="modal-header flex items-center justify-between p-5 border-b rounded-t">
+                    <h5 class="text-xl font-bold text-gray-800" id="viewWarningModalLabel">Compliance Warning</h5>
+                    <button type="button" class="close text-gray-400 hover:text-gray-600" data-bs-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body p-5">
+                    <div class="mb-4">
+                        <h5 id="warning-type" class="text-lg font-semibold"></h5>
+                        <div class="flex justify-between mb-2">
+                            <span id="warning-level-badge"></span>
+                            <span id="warning-status-badge"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6 class="font-semibold mb-2">Issue Description:</h6>
+                        <div id="warning-description" class="p-3 bg-gray-100 rounded"></div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6 class="font-semibold mb-2">Action Required:</h6>
+                        <div id="warning-action" class="p-3 bg-gray-100 rounded"></div>
+                    </div>
+                </div>
+                <div class="modal-footer flex items-center justify-end p-4 border-t">
+                    <button type="button" class="btn btn-secondary bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&callback=initMap" async defer></script>
+<script>
+    let map;
+    
+    function initMap() {
+        // Map will be initialized when needed
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle View Warning button clicks
+        document.querySelectorAll('.view-warning-btn').forEach(function(button) {
+            button.addEventListener('click', function() {
+                var warningType = this.getAttribute('data-warning-type');
+                var warningLevel = this.getAttribute('data-warning-level');
+                var warningStatus = this.getAttribute('data-warning-status');
+                var warningDescription = this.getAttribute('data-warning-description');
+                var warningAction = this.getAttribute('data-warning-action');
+                
+                document.getElementById('warning-type').textContent = warningType;
+                document.getElementById('warning-description').textContent = warningDescription;
+                document.getElementById('warning-action').textContent = warningAction || 'No specific action required.';
+                
+                // Set level badge
+                var levelBadge = '';
+                if (warningLevel === 'Critical') {
+                    levelBadge = '<span class="badge bg-danger">Critical</span>';
+                } else if (warningLevel === 'High') {
+                    levelBadge = '<span class="badge bg-warning">High</span>';
+                } else if (warningLevel === 'Medium') {
+                    levelBadge = '<span class="badge bg-info">Medium</span>';
+                } else {
+                    levelBadge = '<span class="badge bg-secondary">Low</span>';
+                }
+                document.getElementById('warning-level-badge').innerHTML = levelBadge;
+                
+                // Set status badge
+                var statusBadge = '';
+                if (warningStatus === 'Resolved') {
+                    statusBadge = '<span class="badge bg-success">Resolved</span>';
+                } else if (warningStatus === 'Acknowledged') {
+                    statusBadge = '<span class="badge bg-info">Acknowledged</span>';
+                } else {
+                    statusBadge = '<span class="badge bg-warning">Pending</span>';
+                }
+                document.getElementById('warning-status-badge').innerHTML = statusBadge;
+            });
+        });
+        
+        // Handle Resolve Warning button clicks
+        document.querySelectorAll('.resolve-warning-btn').forEach(function(button) {
+            button.addEventListener('click', function() {
+                var warningId = this.getAttribute('data-warning-id');
+                document.getElementById('resolve_warning_id').value = warningId;
+            });
+        });
+        
+        // Handle View Unmapped Alert button clicks
+        document.querySelectorAll('.view-unmapped-alert-btn').forEach(function(button) {
+            button.addEventListener('click', function() {
+                var alertDate = this.getAttribute('data-alert-date');
+                var alertLocation = this.getAttribute('data-alert-location');
+                var alertCoords = this.getAttribute('data-alert-coords');
+                var alertDescription = this.getAttribute('data-alert-description');
+                var alertStatus = this.getAttribute('data-alert-status');
+                var alertImage = this.getAttribute('data-alert-image');
+                
+                document.getElementById('unmapped-alert-date').textContent = alertDate;
+                document.getElementById('unmapped-alert-location').textContent = alertLocation;
+                document.getElementById('unmapped-alert-coords').textContent = alertCoords;
+                document.getElementById('unmapped-alert-description').textContent = alertDescription;
+                document.getElementById('unmapped-alert-image').src = alertImage;
+                
+                // Set status badge
+                var statusBadge = '';
+                if (alertStatus === 'Resolved') {
+                    statusBadge = '<span class="badge bg-success">Resolved</span>';
+                } else if (alertStatus === 'Confirmed') {
+                    statusBadge = '<span class="badge bg-danger">Confirmed</span>';
+                } else if (alertStatus === 'Under Review') {
+                    statusBadge = '<span class="badge bg-info">Under Review</span>';
+                } else if (alertStatus === 'False Alarm') {
+                    statusBadge = '<span class="badge bg-secondary">False Alarm</span>';
+                } else {
+                    statusBadge = '<span class="badge bg-warning">New</span>';
+                }
+                document.getElementById('unmapped-alert-status-badge').innerHTML = statusBadge;
+                
+                // Initialize map
+                if (typeof google !== 'undefined') {
+                    // Parse coordinates
+                    var coords = alertCoords.split(',');
+                    var lat = parseFloat(coords[0]);
+                    var lng = parseFloat(coords[1]);
+                    
+                    var mapOptions = {
+                        center: { lat: lat, lng: lng },
+                        zoom: 14
+                    };
+                    
+                    map = new google.maps.Map(document.getElementById('map-container'), mapOptions);
+                    
+                    // Add marker
+                    new google.maps.Marker({
+                        position: { lat: lat, lng: lng },
+                        map: map,
+                        title: alertLocation
+                    });
+                } else {
+                    document.getElementById('map-container').innerHTML = 
+                        '<div class="p-3 text-center text-muted">Map loading failed. Please check your internet connection.</div>';
+                }
+            });
+        });
+        
+        // Handle Resolve Unmapped Alert button clicks
+        document.querySelectorAll('.resolve-unmapped-alert-btn').forEach(function(button) {
+            button.addEventListener('click', function() {
+                var alertId = this.getAttribute('data-alert-id');
+                document.getElementById('resolve_alert_id').value = alertId;
+            });
+        });
+    });
+</script>
+{% endblock %}

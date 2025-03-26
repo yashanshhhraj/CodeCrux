@@ -86,19 +86,17 @@ WSGI_APPLICATION = 'smart_waste.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mongodb',
-#         'NAME': 'codecrux',  # Your database name
-#         'CLIENT': {
-#             'host': 'mongodb+srv://codecrux001:CodeCrux123@codecrux.zaczo.mongodb.net/codecrux?retryWrites=true&w=majority',
-#             # You can add additional options if needed:
-#             'connectTimeoutMS': 30000,
-#             'socketTimeoutMS': 30000,
-#             'serverSelectionTimeoutMS': 5000,
-#         }
-#     }
-# }
+DATABASES = {
+    'default': {
+        'ENGINE': 'djongo',  # Use djongo for MongoDB
+        'NAME': 'CodeCrux',  # Replace with your database name
+        'ENFORCE_SCHEMA': False,  # Disable schema enforcement
+        'CLIENT': {
+            'host': 'mongodb+srv://codecrux001:CodeCrux123@codecrux.zaczo.mongodb.net/codecrux?retryWrites=true&w=majority',  # MongoDB URL
+        }
+    }
+}
+
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'djongo',

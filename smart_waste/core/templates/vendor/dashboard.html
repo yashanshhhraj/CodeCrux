@@ -1,0 +1,121 @@
+{% extends "vendor/base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+    <div class="bg-white p-4 shadow-md border-l-4 border-blue-500 rounded-lg flex justify-between items-center">
+        <div>
+            <h2 class="text-sm font-semibold text-blue-600 uppercase">Total Waste Collected</h2>
+            <p class="text-2xl font-bold text-gray-800">{{ total_waste }} tonnes</p>
+        </div>
+        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6h18M9 6V4h6v2M10 11v6m4-6v6m1 4H9a2 2 0 01-2-2V6h10v13a2 2 0 01-2 2z"/>
+        </svg>
+    </div>
+
+    <div class="bg-white p-4 shadow-md border-l-4 border-green-500 rounded-lg flex justify-between items-center">
+        <div>
+            <h2 class="text-sm font-semibold text-green-600 uppercase">Compliance Score</h2>
+            <p class="text-2xl font-bold text-gray-800">{{ compliance_score }}%</p>
+        </div>
+        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5 10H4a2 2 0 01-2-2V6a2 2 0 012-2h16a2 2 0 012 2v12a2 2 0 01-2 2z"/>
+        </svg>
+    </div>
+
+    <div class="bg-white p-4 shadow-md border-l-4 border-blue-400 rounded-lg flex justify-between items-center">
+        <div>
+            <h2 class="text-sm font-semibold text-blue-600 uppercase">Active Vehicles</h2>
+            <p class="text-2xl font-bold text-gray-800">{{ active_vehicles }}</p>
+        </div>
+        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2h6v2m0-8V5H9v4H4l1 9h14l1-9h-5z"/>
+        </svg>
+    </div>
+
+    <div class="bg-white p-4 shadow-md border-l-4 border-yellow-500 rounded-lg flex justify-between items-center">
+        <div>
+            <h2 class="text-sm font-semibold text-yellow-600 uppercase">Pending Alerts</h2>
+            <p class="text-2xl font-bold text-gray-800">{{ pending_alerts }}</p>
+        </div>
+        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.257 3.099c.366-.446.955-.678 1.544-.591l4.4.708c.589.087 1.052.483 1.227 1.049l1.733 5.494a4.992 4.992 0 01-1.323 5.086L12 20.08l-3.838-5.235a4.992 4.992 0 01-1.323-5.086l1.733-5.494c.175-.566.638-.962 1.227-1.049l4.4-.708a1.517 1.517 0 011.544.591z"/>
+        </svg>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="bg-white p-6 shadow-md rounded-lg col-span-2">
+        <h3 class="text-lg font-bold text-gray-700">Waste Collection Overview</h3>
+        <canvas id="wasteCollectionChart" class="mt-4"></canvas>
+    </div>
+    <div class="bg-white p-6 shadow-md rounded-lg">
+        <h3 class="text-lg font-bold text-gray-700">Waste Types Distribution</h3>
+        <canvas id="wasteTypesChart" class="mt-4"></canvas>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+    <div class="bg-white p-6 shadow-md rounded-lg">
+        <h3 class="text-lg font-bold text-gray-700">Recent Waste Trackings</h3>
+        <table class="w-full mt-4 border">
+            <thead class="bg-gray-100">
+                <tr>
+                    <th class="p-2">Date</th>
+                    <th class="p-2">Waste Type</th>
+                    <th class="p-2">Quantity</th>
+                    <th class="p-2">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tracking in recent_trackings %}
+                <tr class="border-b">
+                    <td class="p-2">{{ tracking.collection_date }}</td>
+                    <td class="p-2">{{ tracking.waste_type.name }}</td>
+                    <td class="p-2">{{ tracking.quantity }} tonnes</td>
+                    <td class="p-2">
+                        <span class="px-2 py-1 text-sm rounded 
+                            {% if tracking.disposal_date %}bg-green-200 text-green-800{% else %}bg-yellow-200 text-yellow-800{% endif %}">
+                            {% if tracking.disposal_date %}Disposed{% else %}Pending{% endif %}
+                        </span>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center p-4">No recent waste trackings</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="bg-white p-6 shadow-md rounded-lg">
+        <h3 class="text-lg font-bold text-gray-700">Recent Compliance Alerts</h3>
+        <table class="w-full mt-4 border">
+            <thead class="bg-gray-100">
+                <tr>
+                    <th class="p-2">Date</th>
+                    <th class="p-2">Issue</th>
+                    <th class="p-2">Level</th>
+                    <th class="p-2">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for alert in recent_alerts %}
+                <tr class="border-b">
+                    <td class="p-2">{{ alert.created_at|date:"M d, Y" }}</td>
+                    <td class="p-2">{{ alert.issue_type }}</td>
+                    <td class="p-2 text-sm text-white px-2 py-1 rounded bg-{{ alert.level }}">{{ alert.get_level_display }}</td>
+                    <td class="p-2 text-sm text-white px-2 py-1 rounded bg-{{ alert.status }}">{{ alert.get_status_display }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center p-4">No recent alerts</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,9 +1,9 @@
-{% extends 'base.html' %}
+{% extends 'core/base.html' %}
 
 {% block title %}Public Dashboard - CleanCity{% endblock %}
 
 {% block content %}
-<div class="container mx-auto px-4 py-10">
+<div class="container mx-auto px-4 py-20">
     <div class="text-center mb-8">
         <h1 class="text-4xl font-bold text-gray-800">Welcome to CleanCity</h1>
         <p class="text-lg text-gray-600">Help keep our community clean and earn rewards</p>
@@ -17,7 +17,7 @@
             </div>
             <h3 class="text-xl font-semibold">Report Garbage</h3>
             <p class="text-gray-600">Spotted garbage in your neighborhood? Report it easily and help keep your community clean.</p>
-            <a href="{% url 'report_garbage' %}" class="mt-4 inline-block px-4 py-2 bg-blue-500 text-white rounded-lg">Report Now</a>
+            {% comment %} <a href="{% url 'report_garbage' %}" class="mt-4 inline-block px-4 py-2 bg-blue-500 text-white rounded-lg">Report Now</a> {% endcomment %}
         </div>
 
         <!-- Track Collection Vehicle Card -->
@@ -27,7 +27,7 @@
             </div>
             <h3 class="text-xl font-semibold">Track Collection</h3>
             <p class="text-gray-600">See real-time location of garbage collection vehicles in your area.</p>
-            <a href="{% url 'track_vehicle' %}" class="mt-4 inline-block px-4 py-2 bg-green-500 text-white rounded-lg">Track Now</a>
+            {% comment %} <a href="{% url 'track_vehicle' %}" class="mt-4 inline-block px-4 py-2 bg-green-500 text-white rounded-lg">Track Now</a> {% endcomment %}
         </div>
 
         <!-- Rewards Points Card -->
@@ -37,7 +37,7 @@
             </div>
             <h3 class="text-xl font-semibold">Reward Points</h3>
             <p class="text-gray-600">Earn points for contributions to keeping the city clean and redeem for rewards.</p>
-            <a href="{% url 'rewards_dashboard' %}" class="mt-4 inline-block px-4 py-2 bg-yellow-500 text-white rounded-lg">View Rewards</a>
+            {% comment %} <a href="{% url 'rewards_dashboard' %}" class="mt-4 inline-block px-4 py-2 bg-yellow-500 text-white rounded-lg">View Rewards</a> {% endcomment %}
         </div>
     </div>
 

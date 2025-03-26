@@ -1,0 +1,138 @@
+{% extends 'vendor/base.html' %}
+
+{% block title %}Compliance Report Detail{% endblock %}
+
+{% block page_title %}Compliance Report: {{ report.title }}{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'vendor_compliance' %}" class="inline-flex items-center px-4 py-2 bg-gray-600 text-white text-sm font-medium rounded-md hover:bg-gray-700 transition">
+    <i class="bi bi-arrow-left mr-2"></i> Back to Reports
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="bg-white shadow rounded-lg p-6 mb-6">
+    <div class="flex justify-between items-center">
+        <h5 class="text-lg font-semibold">Report Details</h5>
+        <span class="px-3 py-1 rounded-full text-white text-sm font-medium 
+            {% if report.compliance_score >= 80 %}bg-green-500
+            {% elif report.compliance_score >= 60 %}bg-yellow-500
+            {% else %}bg-red-500{% endif %}">
+            {{ report.compliance_score }}% Compliance
+        </span>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+        <div>
+            <p><strong>Report Period:</strong> {{ report.report_period }}</p>
+            <p><strong>Created By:</strong> {{ report.created_by.get_full_name|default:report.created_by.username }}</p>
+            <p><strong>Status:</strong> 
+                <span class="px-2 py-1 rounded-md text-white text-sm 
+                    {% if report.status == 'published' %}bg-green-500
+                    {% elif report.status == 'draft' %}bg-gray-500
+                    {% else %}bg-blue-500{% endif %}">
+                    {{ report.get_status_display }}
+                </span>
+            </p>
+        </div>
+        <div>
+            <p><strong>Created:</strong> {{ report.created_at|date:"F d, Y" }}</p>
+            {% if report.published_at %}
+            <p><strong>Published:</strong> {{ report.published_at|date:"F d, Y" }}</p>
+            {% endif %}
+            <p><strong>Last Updated:</strong> {{ report.updated_at|date:"F d, Y" }}</p>
+        </div>
+    </div>
+</div>
+
+<div class="bg-white shadow rounded-lg p-6 mb-6">
+    <h5 class="text-lg font-semibold">Summary</h5>
+    <div class="mt-2">
+        <p class="text-gray-700">{{ report.summary|linebreaks }}</p>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="bg-white shadow rounded-lg p-6">
+        <h5 class="text-lg font-semibold">Compliance Score Breakdown</h5>
+        <div class="mt-4">
+            <canvas id="complianceChart"></canvas>
+        </div>
+    </div>
+
+    <div class="bg-white shadow rounded-lg p-6">
+        <h5 class="text-lg font-semibold">Action Items</h5>
+        <div class="p-4 rounded-md text-white
+            {% if report.compliance_score >= 80 %}bg-green-500
+            {% elif report.compliance_score >= 60 %}bg-yellow-500
+            {% else %}bg-red-500{% endif %}">
+            {% if report.compliance_score >= 80 %}
+                <h5 class="font-bold"><i class="bi bi-check-circle"></i> Excellent Performance</h5>
+                <p>Keep up the good work! Your compliance level meets our high standards.</p>
+            {% elif report.compliance_score >= 60 %}
+                <h5 class="font-bold"><i class="bi bi-exclamation-triangle"></i> Areas for Improvement</h5>
+                <p>Please review the recommendations and work on improving your compliance score.</p>
+            {% else %}
+                <h5 class="font-bold"><i class="bi bi-x-circle"></i> Urgent Attention Required</h5>
+                <p>Your compliance score is below acceptable standards. Immediate action is required.</p>
+            {% endif %}
+        </div>
+
+        <div class="mt-4">
+            <h6 class="font-semibold">Recommended Actions:</h6>
+            <ul class="mt-2 space-y-2">
+                <li class="p-2 bg-gray-100 rounded-md">Review waste handling procedures</li>
+                <li class="p-2 bg-gray-100 rounded-md">Ensure all disposal documentation is properly maintained</li>
+                <li class="p-2 bg-gray-100 rounded-md">Address any outstanding violations</li>
+                <li class="p-2 bg-gray-100 rounded-md">Schedule a compliance review meeting with municipal authorities</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('complianceChart').getContext('2d');
+
+        // Score breakdown (example data - in a real app this would come from the backend)
+        const complianceChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Documentation', 'Processing', 'Disposal', 'Reporting'],
+                datasets: [{
+                    data: [
+                        {{ report.compliance_score|default:0 }}, 
+                        {{ report.compliance_score|default:0 }}, 
+                        {{ report.compliance_score|default:0 }}, 
+                        {{ report.compliance_score|default:0 }}
+                    ],
+                    backgroundColor: [
+                        'rgba(75, 192, 192, 0.8)',
+                        'rgba(54, 162, 235, 0.8)',
+                        'rgba(153, 102, 255, 0.8)',
+                        'rgba(255, 159, 64, 0.8)'
+                    ],
+                    borderColor: [
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}
